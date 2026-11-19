@@ -322,6 +322,10 @@ namespace WindowsCalculator
 
         private void ProcessInput(string input)
         {
+            // Guard against null or empty input to avoid null reference exceptions.
+            if (string.IsNullOrEmpty(input))
+                return;
+
             if (char.IsDigit(input[0]) || input == ".")
             {
                 InputNumber(input);
