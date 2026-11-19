@@ -1,6 +1,8 @@
 # Windows Calculator
 <!-- Updated to trigger a new workflow run -->
 
+**Note:** This commit triggers a new GitHub Actions workflow run to validate the build.
+
 A modern calculator application for Windows with two implementations:
 
 ## 1. Python tkinter Version (Cross-platform)
