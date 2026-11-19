@@ -16,7 +16,8 @@ jobs:
     name: Build Windows x64
     runs-on: windows-latest
     env:
-      SOLUTION: WindowsCalculator/WindowsCalculator.sln
+      # The solution file lives at the repository root
+      SOLUTION: WindowsCalculator.sln
       # The project file lives directly in the WindowsCalculator folder
       PROJECT: WindowsCalculator/WindowsCalculator.csproj
       CONFIGURATION: Release
