@@ -1,4 +1,5 @@
 # Windows Calculator
+<!-- Updated to trigger a new workflow run -->
 
 A modern calculator application for Windows with two implementations:
 
