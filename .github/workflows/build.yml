@@ -17,7 +17,7 @@ jobs:
     runs-on: windows-latest
     env:
       SOLUTION: WindowsCalculator/WindowsCalculator.sln
-      PROJECT: WindowsCalculator/WindowsCalculator.csproj
+      PROJECT: WindowsCalculator/WindowsCalculator/WindowsCalculator.csproj
       CONFIGURATION: Release
       FRAMEWORK: net8.0-windows
       RID: win-x64
@@ -103,7 +103,7 @@ jobs:
     name: Build Linux x64 (for testing)
     runs-on: ubuntu-latest
     env:
-      PROJECT: WindowsCalculator/WindowsCalculator.csproj
+      PROJECT: WindowsCalculator/WindowsCalculator/WindowsCalculator.csproj
       CONFIGURATION: Release
       FRAMEWORK: net8.0
       RID: linux-x64
