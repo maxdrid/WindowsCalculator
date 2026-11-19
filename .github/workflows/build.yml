@@ -1,0 +1,142 @@
+name: Build Windows Calculator
+
+on:
+  push:
+    branches: [main, master]
+    tags: ['v*']
+  pull_request:
+    branches: [main, master]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build-windows:
+    name: Build Windows x64
+    runs-on: windows-latest
+    env:
+      SOLUTION: WindowsCalculator/WindowsCalculator.sln
+      PROJECT: WindowsCalculator/WindowsCalculator.csproj
+      CONFIGURATION: Release
+      FRAMEWORK: net8.0-windows
+      RID: win-x64
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup .NET 8
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+
+      - name: Restore dependencies
+        run: dotnet restore ${{ env.PROJECT }}
+
+      - name: Build solution
+        run: dotnet build ${{ env.SOLUTION }} --configuration ${{ env.CONFIGURATION }} --framework ${{ env.FRAMEWORK }} --no-restore
+
+      - name: Publish self-contained single-file executable
+        run: |
+          dotnet publish ${{ env.PROJECT }} `
+            --configuration ${{ env.CONFIGURATION }} `
+            --framework ${{ env.FRAMEWORK }} `
+            --runtime ${{ env.RID }} `
+            --self-contained true `
+            -p:PublishSingleFile=true `
+            -p:PublishTrimmed=true `
+            -p:IncludeNativeLibrariesForSelfExtract=true `
+            -p:DebugType=None `
+            -p:DebugSymbols=false `
+            -o publish/${{ env.RID }}
+
+      - name: Verify executable
+        run: |
+          $exe = "publish/${{ env.RID }}/Windows Calculator.exe"
+          if (Test-Path $exe) {
+            $size = (Get-Item $exe).Length / 1MB
+            Write-Host "✓ Executable found: $exe ($([math]::Round($size, 2)) MB)"
+          } else {
+            Write-Error "✗ Executable not found at $exe"
+            exit 1
+          }
+        shell: pwsh
+
+      - name: Upload artifact (Windows x64)
+        uses: actions/upload-artifact@v4
+        with:
+          name: Windows-Calculator-win-x64
+          path: publish/win-x64/Windows Calculator.exe
+          retention-days: 30
+
+      - name: Create release (on tag push)
+        if: startsWith(github.ref, 'refs/tags/v')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: publish/win-x64/Windows Calculator.exe
+          name: Windows Calculator ${{ github.ref_name }}
+          body: |
+            ## Windows Calculator ${{ github.ref_name }}
+            
+            Self-contained Windows x64 executable — **no .NET installation required**.
+            
+            ### Features
+            - Standard & Scientific modes (View menu)
+            - Trigonometric, logarithmic, factorial, power functions
+            - Constants (π, e)
+            - Dark theme (Windows 11 style)
+            - Keyboard shortcuts, Copy/Paste
+            - High DPI support
+            
+            ### Download
+            - **Windows Calculator.exe** (~25-35 MB, single file)
+            
+            ### Requirements
+            - Windows 10/11 (x64)
+          draft: false
+          prerelease: ${{ contains(github.ref_name, '-') }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  build-linux:
+    name: Build Linux x64 (for testing)
+    runs-on: ubuntu-latest
+    env:
+      PROJECT: WindowsCalculator/WindowsCalculator.csproj
+      CONFIGURATION: Release
+      FRAMEWORK: net8.0
+      RID: linux-x64
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup .NET 8
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+
+      - name: Restore dependencies
+        run: dotnet restore ${{ env.PROJECT }}
+
+      - name: Build project
+        run: dotnet build ${{ env.PROJECT }} --configuration ${{ env.CONFIGURATION }} --framework ${{ env.FRAMEWORK }} --no-restore
+
+      - name: Publish Linux executable
+        run: |
+          dotnet publish ${{ env.PROJECT }} \
+            --configuration ${{ env.CONFIGURATION }} \
+            --framework ${{ env.FRAMEWORK }} \
+            --runtime ${{ env.RID }} \
+            --self-contained true \
+            -p:PublishSingleFile=true \
+            -p:PublishTrimmed=true \
+            -o publish/${{ env.RID }}
+
+      - name: Upload artifact (Linux x64)
+        uses: actions/upload-artifact@v4
+        with:
+          name: Windows-Calculator-linux-x64
+          path: publish/linux-x64/WindowsCalculator
+          retention-days: 7
